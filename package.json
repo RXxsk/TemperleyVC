@@ -1,0 +1,9 @@
+{
+  "name": "temperleyvc",
+  "version": "1.0.0",
+  "description": "Bot de Discord para canales de voz temporales, controles y roles efímeros.",
+  "main": "src/index.js",
+  "scripts": {"start": "node src/index.js", "deploy-commands": "node src/deploy-commands.js", "check": "node --check src/index.js"},
+  "engines": {"node": ">=20.0.0"},
+  "dependencies": {"discord.js": "^14.22.1", "dotenv": "^16.6.1"}
+}
