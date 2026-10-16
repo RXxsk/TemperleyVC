@@ -4,6 +4,18 @@ const state=require('./state');
 const {commands,runCommand,panelPayload}=require('./commands/commands');
 const {embed,ok,error}=require('./utils/embeds');
 const {makeRoom,cleanupRoom,getRoom}=require('./utils/rooms');
+
+// Endpoint HTTP mínimo para que Render Web Service detecte el puerto activo.
+const http = require('node:http');
+const port = Number(process.env.PORT || 3000);
+http.createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/') {
+    res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
+    return res.end('TemperleyVC está activo.');
+  }
+  res.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+  res.end('No encontrado');
+}).listen(port, '0.0.0.0', () => console.log(`Servidor de salud HTTP activo en el puerto ${port}.`));
 if(!token){console.error('Falta DISCORD_TOKEN en .env');process.exit(1);}
 const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers,GatewayIntentBits.GuildVoiceStates]});
 client.once(Events.ClientReady,async c=>{
