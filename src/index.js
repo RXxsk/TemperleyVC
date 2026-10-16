@@ -1,5 +1,5 @@
-const { Client, GatewayIntentBits, Events, ChannelType, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
-const { token, initialCreateChannelId, initialCategoryId, initialPanelChannelId } = require('./config');
+const { Client, GatewayIntentBits, Events, ChannelType, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder, REST, Routes } = require('discord.js');
+const { token, clientId, guildId, initialCreateChannelId, initialCategoryId, initialPanelChannelId } = require('./config');
 const state=require('./state');
 const {commands,runCommand,panelPayload}=require('./commands/commands');
 const {embed,ok,error}=require('./utils/embeds');
@@ -20,6 +20,18 @@ if(!token){console.error('Falta DISCORD_TOKEN en .env');process.exit(1);}
 const client=new Client({intents:[GatewayIntentBits.Guilds,GatewayIntentBits.GuildMembers,GatewayIntentBits.GuildVoiceStates]});
 client.once(Events.ClientReady,async c=>{
  console.log(`🤖 ${c.user.tag} está en línea. Estado efímero: RAM únicamente.`);
+ // El registro de comandos es independiente: si falla, el bot permanece conectado.
+ if (clientId && guildId) {
+  try {
+   const rest = new REST({ version: '10' }).setToken(token);
+   await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+   console.log(`✅ Registrados ${commands.length} comandos slash en el servidor ${guildId}.`);
+  } catch (e) {
+   console.error('❌ No se pudieron registrar los comandos slash. El bot seguirá conectado:', e?.message || e);
+  }
+ } else {
+  console.error('⚠️ Faltan CLIENT_ID o GUILD_ID; el bot sigue conectado, pero no puede registrar comandos slash.');
+ }
  for(const guild of c.guilds.cache.values()){
   if(initialCreateChannelId) state.settings.set(guild.id,{createChannelId:initialCreateChannelId,categoryId:initialCategoryId,panelChannelId:initialPanelChannelId});
   const s=state.settings.get(guild.id); if(s?.panelChannelId){const ch=guild.channels.cache.get(s.panelChannelId);if(ch) await ch.send(panelPayload()).catch(()=>{});}
